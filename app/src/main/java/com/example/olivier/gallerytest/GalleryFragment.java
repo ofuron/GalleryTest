@@ -7,42 +7,39 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import com.example.olivier.gallerytest.yelp.SearchResponse;
-import com.example.olivier.gallerytest.yelp.YelpClient;
-import java.util.HashMap;
-import java.util.Map;
+import com.example.olivier.gallerytest.yelp.Business;
+import java.util.ArrayList;
 import javax.inject.Inject;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
-public class GalleryFragment extends Fragment {
+public class GalleryFragment extends Fragment implements GalleryPresenter.View {
 
   private RecyclerView mRecyclerView;
   private GalleryAdapter mAdapter;
   private SearchView mSearchView;
 
-  @Inject YelpClient mYelpClient;
+  GalleryPresenter mPresenter;
 
   @Nullable @Override public View onCreateView(LayoutInflater inflater, ViewGroup container,
       Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.gallery_fragment, container, false);
 
-    ((GalleryApplication) getActivity().getApplication()).getAppComponent().inject(this);
+    ((GalleryApplication) getActivity().getApplication()).getGalleryComponent().inject(this);
+
+    mPresenter = new GalleryPresenter(getActivity().getApplication());
+    mPresenter.setView(this);
 
     mAdapter = new GalleryAdapter(getActivity());
     mRecyclerView = (RecyclerView) view.findViewById(R.id.recycler_view);
     mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
     mRecyclerView.setAdapter(mAdapter);
 
-    queryYelp("pizza");
+    mPresenter.queryYelp("pizza");
 
     return view;
   }
@@ -55,7 +52,7 @@ public class GalleryFragment extends Fragment {
       mSearchView = (SearchView) MenuItemCompat.getActionView(searchItem);
       mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
         @Override public boolean onQueryTextSubmit(String query) {
-          queryYelp(query);
+          mPresenter.queryYelp(query);
           return true;
         }
 
@@ -70,21 +67,8 @@ public class GalleryFragment extends Fragment {
     return super.onOptionsItemSelected(item);
   }
 
-  private void queryYelp(String searchTerm) {
-    Map<String, String> queryMap = new HashMap<>();
-    queryMap.put("term", searchTerm);
-
-    Call<SearchResponse> responseCall = mYelpClient.search("Mountain View", queryMap);
-    responseCall.enqueue(new Callback<SearchResponse>() {
-      @Override
-      public void onResponse(Call<SearchResponse> call, Response<SearchResponse> response) {
-        mAdapter.setData(response.body().businesses());
-        mAdapter.notifyDataSetChanged();
-      }
-
-      @Override public void onFailure(Call<SearchResponse> call, Throwable t) {
-        Log.e("Yelp OnFailure", t.toString());
-      }
-    });
+  @Override public void onDataSetChanged(ArrayList<Business> data) {
+    mAdapter.setData(data);
+    mAdapter.notifyDataSetChanged();
   }
 }
