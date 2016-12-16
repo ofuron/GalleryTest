@@ -18,8 +18,8 @@ public class GalleryPresenter implements Presenter<GalleryPresenter.View> {
 
   @Inject YelpClient mYelpClient;
 
-  GalleryPresenter(Context ctx) {
-    ((GalleryApplication) ctx.getApplicationContext()).getGalleryComponent().inject(this);
+  @Inject GalleryPresenter(Application application) {
+    ((GalleryApplication) application.getApplicationContext()).getAppComponent().inject(this);
   }
 
   private View mView;

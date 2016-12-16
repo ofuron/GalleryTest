@@ -23,15 +23,19 @@ public class GalleryFragment extends Fragment implements GalleryPresenter.View {
   private GalleryAdapter mAdapter;
   private SearchView mSearchView;
 
-  GalleryPresenter mPresenter;
+  @Inject GalleryPresenter mPresenter;
+
+  @Override public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setHasOptionsMenu(true);
+  }
 
   @Nullable @Override public View onCreateView(LayoutInflater inflater, ViewGroup container,
       Bundle savedInstanceState) {
     View view = inflater.inflate(R.layout.gallery_fragment, container, false);
 
-    ((GalleryApplication) getActivity().getApplication()).getGalleryComponent().inject(this);
+    ((GalleryApplication) getActivity().getApplication()).getAppComponent().inject(this);
 
-    mPresenter = new GalleryPresenter(getActivity().getApplication());
     mPresenter.setView(this);
 
     mAdapter = new GalleryAdapter(getActivity());
